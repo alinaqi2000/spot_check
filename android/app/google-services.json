@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1005144802323",
+    "project_id": "spot-check-388006",
+    "storage_bucket": "spot-check-388006.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1005144802323:android:6ef3b7c834b9bca5b1abe6",
+        "android_client_info": {
+          "package_name": "com.spot_check.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1005144802323-7jgt44b746ge4mird59r1mqvvvuqm9gk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.spot_check.app",
+            "certificate_hash": "80fec22b0cd49df69a7ac53b5f296b9b3d23cb78"
+          }
+        },
+        {
+          "client_id": "1005144802323-578ep0ob6ltg2q07ld4jorgq3ncseeu0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuKKb9ZXATKIkz3pTe4AzySz4MtslbNoc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1005144802323-578ep0ob6ltg2q07ld4jorgq3ncseeu0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1005144802323-aeu6na2i2vg7n6sps48uu84g6cr6urok.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.spotCheck"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
