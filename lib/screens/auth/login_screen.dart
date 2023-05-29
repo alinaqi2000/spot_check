@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Image.asset(AppAssets.brandLogo),
+        title: Image.asset(AppAssets.brandLogo, height: 34),
         elevation: 2,
         surfaceTintColor: Colors.transparent,
       ),

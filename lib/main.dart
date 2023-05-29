@@ -37,6 +37,8 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       scaffoldMessengerKey: SnackbarGlobal.key,
+      debugShowCheckedModeBanner: false,
+      defaultTransition: Transition.native,
       theme: ThemeData(
           brightness: Brightness.dark,
           useMaterial3: true,
