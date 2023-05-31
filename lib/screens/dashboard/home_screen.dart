@@ -1,15 +1,19 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 import 'package:spot_check/constants/colors.dart';
 import 'package:spot_check/constants/constraints.dart';
 import 'package:spot_check/constants/sizes.dart';
 import 'package:spot_check/screens/dashboard/partial/app_bar.dart';
 import 'package:spot_check/store/controllers/activity.controller.dart';
 import 'package:spot_check/store/controllers/location.controller.dart';
+import 'package:spot_check/store/models/location.model.dart';
+import 'package:spot_check/utils/geolocation.dart';
 import 'package:spot_check/widgets/components.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:geolocator/geolocator.dart';
+
+const locationBoxHeight = 210.0;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,20 +23,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Position? position;
-
+  LocationController lC = Get.put(LocationController(), permanent: true);
   void _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    permission = await Geolocator.checkPermission();
-    if (permission != LocationPermission.denied) {
-      Position userLocation = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-
-      setState(() {
-        position = userLocation;
-      });
+    if (!(lC.currentCordinates.value != null)) {
+      LocationPermission permission;
+      permission = await Geolocator.checkPermission();
+      if (permission != LocationPermission.denied) {
+        lC.currentCordinates.value = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high);
+      }
     }
   }
 
@@ -40,10 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-
     _determinePosition();
-
-  
   }
 
   @override
@@ -74,14 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.only(top: 24),
                   child: SectionTitleText(text: "My Locations"),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: SectionTitleText(text: position.toString()),
-                ),
                 SizedBox(
-                  height: 174,
+                  height: locationBoxHeight,
+                  width: MediaQuery.of(context).size.width,
                   child: Padding(
-                      padding: const EdgeInsets.only(top: 0),
+                      padding: const EdgeInsets.only(top: 10),
                       child: LocationsList()),
                 ),
                 const Padding(
@@ -167,7 +160,7 @@ class ActivityList extends StatelessWidget {
 }
 
 class LocationsList extends StatelessWidget {
-  final LocationController tC = Get.put(LocationController());
+  final LocationController lC = Get.put(LocationController());
   LocationsList({super.key});
 
   @override
@@ -175,11 +168,47 @@ class LocationsList extends StatelessWidget {
     return StreamBuilder(
       stream: LocationController.to.loadLocations(),
       builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SizedBox(
+            child: Center(
+              child: Wrap(
+                direction: Axis.vertical,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Lottie.asset("assets/lottie/location_empty.json",
+                      height: 100),
+                  const PromText(text: "No locations found")
+                ],
+              ),
+            ),
+          );
+        }
+        if (snapshot.data!.isEmpty) {
+          return SizedBox(
+            child: Center(
+              child: Wrap(
+                direction: Axis.vertical,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Lottie.asset("assets/lottie/location_empty.json",
+                      height: 100),
+                  const PromText(text: "No locations found")
+                ],
+              ),
+            ),
+          );
+        }
+
         return ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: snapshot.data?.length ?? 0,
             itemBuilder: (BuildContext context, int index) {
+              final Location location = snapshot.data![index];
+              final distance = lC.distanceBetweenLocation(location);
+              final distanceText = AppGeolocator.kmtoMString(distance);
+
               return Padding(
+                key: UniqueKey(),
                 padding: const EdgeInsets.only(top: 20, bottom: 20, right: 8),
                 child: SizedBox(
                   width: 146,
@@ -193,30 +222,84 @@ class LocationsList extends StatelessWidget {
                           )
                         ],
                         borderRadius: BorderRadius.only(
-                            topLeft:
-                                Radius.circular(AppConstraints.borderRadius),
-                            topRight: Radius.circular(6),
-                            bottomLeft:
-                                Radius.circular(AppConstraints.borderRadius),
-                            bottomRight:
-                                Radius.circular(AppConstraints.borderRadius)),
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(64),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12)),
                         gradient: LinearGradient(
-                          colors: [Color(0xff781b2e), Color(0x82201a1a)],
-                          stops: [0, 0.4],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                          colors: [Color(0xff781b2e), Color(0xffe91e63)],
+                          stops: [0.33, 1],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         )),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Flex(
-                          direction: Axis.vertical,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Heading2Text(
-                              text: snapshot.data![index].title ?? "",
-                            )
-                          ]),
+                      child: Stack(clipBehavior: Clip.none, children: [
+                        Positioned(
+                            left: -25,
+                            top: -30,
+                            child: SizedBox(
+                              height: 60,
+                              width: 60,
+                              child: Lottie.asset(
+                                  'assets/lottie/map_marker_animation.json'),
+                            )),
+                        Positioned(
+                            top: 28,
+                            height: locationBoxHeight - 105,
+                            child: Wrap(
+                              direction: Axis.vertical,
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.start,
+                              clipBehavior: Clip.antiAlias,
+                              spacing: 8,
+                              children: [
+                                Wrap(
+                                  direction: Axis.vertical,
+                                  children: [
+                                    SizedBox(
+                                      width: 125,
+                                      child: Text(
+                                        location.title ?? "",
+                                        softWrap: true,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: AppSizes.prominentSize),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 125,
+                                      child: Text(
+                                        location.address ?? "",
+                                        softWrap: true,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: AppSizes.paraSize),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                SizedBox(
+                                  width: 110,
+                                  child: RichText(
+                                      text: TextSpan(children: [
+                                    TextSpan(
+                                        text: distanceText,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: AppSizes.headingSize)),
+                                    const TextSpan(
+                                        text: " away",
+                                        style: TextStyle(
+                                            fontSize: AppSizes.paraSize)),
+                                  ])),
+                                ),
+                              ],
+                            ))
+                      ]),
                     ),
                   ),
                 ),

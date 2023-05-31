@@ -12,53 +12,10 @@ import 'package:get/get.dart';
 import 'package:spot_check/routes/app.routes.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:volume_control/volume_control.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:spot_check/worker.plugin.dart';
 
 final flNotiPlugin = FlutterLocalNotificationsPlugin();
-
-const fetchBackground = "fetchBackground";
-// @pragma('vm:entry-point')
-void callbackDispatcher() {
-//   Workmanager().executeTask((task, inputData) async {
-//     try {
-//       final flNotiPlugin = FlutterLocalNotificationsPlugin();
-//       // Noti.initialize(flNotiPlugin).then((value) async {
-//       Noti.showBigTextNotification(
-//               title: "NotiTitle",
-//               body: "this is test message body",
-//               id: "un123",
-//               fln: flNotiPlugin)
-//           .then((value) => {print(value)})
-//           .catchError((error) => {print(error)});
-//       // });
-//       print("Native called background task: $fetchBackground");
-//     } catch (e) {
-//       print(e.toString());
-//     }
-// //simpleTask will be emitted here.
-//     return Future.value(true);
-//   });
-  Workmanager().executeTask((task, inputData) async {
-    print(task);
-    switch (task) {
-      case fetchBackground:
-        // final LocalStorage storage = LocalStorage('local_locs');
-        // await storage.ready;
-        // print(await storage.getItem("local_locations"));
-        Position userLocation = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high);
-
-        await VolumeControl.setVolume(0.0);
-        print(userLocation);
-        Get.snackbar("Success", userLocation.toString(),
-            snackPosition: SnackPosition.BOTTOM);
-        break;
-    }
-    return Future.value(true);
-  });
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,13 +24,13 @@ void main() async {
   );
 
   await Noti.initialize(flNotiPlugin);
-  // await AwesomeNotifications()
-  //     .initialize("resource://mipmap-hdpi/ic_launcher", [
-  //   NotificationChannel(
-  //       channelKey: "test_channel",
-  //       channelName: "Test Channel",
-  //       channelDescription: "This is a test channel")
-  // ]);
+  await AwesomeNotifications().initialize("resource://drawable/noti", [
+    NotificationChannel(
+        channelKey: "location_actions",
+        channelName: "Location Actions",
+        channelDescription: "This is a local channel")
+  ]);
+
   await Workmanager().initialize(
     callbackDispatcher,
     isInDebugMode: true,
@@ -102,28 +59,12 @@ class _MyAppState extends State<MyApp> {
       Permission.storage,
       Permission.notification
     ].request();
-    // AwesomeNotifications().isNotificationAllowed().then((value) async {
 
     Workmanager().registerOneOffTask(
-      "3453451",
-      fetchBackground,
-      // existingWorkPolicy: ExistingWorkPolicy.append,
-    );
-    Position userLocation = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    final LocalStorage storage = LocalStorage('local_locs');
-    await storage.ready;
-    List<dynamic> locations = storage.getItem("local_locations");
-    for (var loc in locations) {
-      double dis = Geolocator.distanceBetween(
-        userLocation.latitude,
-        userLocation.longitude,
-        loc.latitude,
-        loc.longitude,
-      );
-      print(dis);
-    }
-    // });
+        DateTime.now().toString(), locationBasedAction,
+        initialDelay: const Duration(seconds: 5)
+        // existingWorkPolicy: ExistingWorkPolicy.append,
+        );
   }
 
   @override

@@ -1,11 +1,17 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
 import 'package:spot_check/store/models/location.model.dart';
 import 'package:spot_check/store/services/location.service.dart';
+import 'package:spot_check/utils/geolocation.dart';
 
 class LocationController extends GetxController {
   static LocationController get to => Get.find();
+
   Rx<Location> currentLocation = Rx(Location.empty());
+  Rx<Position?> currentCordinates = Rx(null);
+
   RxDouble radius = 50.0.obs;
   RxBool performingAction = false.obs;
   RxString stage = "select_location".obs;
@@ -22,6 +28,14 @@ class LocationController extends GetxController {
   void gotoSelectAction(double height) {
     stage.value = 'select_action';
     sheetHeight.value = height - 150.0;
+  }
+
+  double distanceBetweenLocation(Location location) {
+    return AppGeolocator.distanceBetween(
+        currentCordinates.value?.latitude ?? 0.0,
+        currentCordinates.value?.longitude ?? 0.0,
+        location.latitude,
+        location.longitude);
   }
 
   Stream<List<Location>> loadLocations() {
@@ -61,33 +75,33 @@ class LocationController extends GetxController {
     }
   }
 
-  RxList<Location> locations = <Location>[
-    Location(
-        id: "123",
-        userId: "324324324",
-        title: "The University Of Lahore",
-        mapTitle: "University of Lahore",
-        address: "Defence road",
-        radius: 0,
-        latitude: 23423423.2,
-        longitude: 23423423234.2),
-    Location(
-        id: "124",
-        userId: "324324324",
-        title: "Workspace",
-        address: "Gulberg",
-        mapTitle: "Zairone Solutions",
-        radius: 0,
-        latitude: 23423423.2,
-        longitude: 23423423234.2),
-    Location(
-        id: "125",
-        userId: "324324324",
-        title: "Home",
-        address: "Green Town",
-        mapTitle: "Green Town",
-        radius: 0,
-        latitude: 23423423.2,
-        longitude: 23423423234.2)
-  ].obs;
+  // RxList<Location> locations = <Location>[
+  //   Location(
+  //       id: "123",
+  //       userId: "324324324",
+  //       title: "The University Of Lahore",
+  //       mapTitle: "University of Lahore",
+  //       address: "Defence road",
+  //       radius: 0,
+  //       latitude: 23423423.2,
+  //       longitude: 23423423234.2),
+  //   Location(
+  //       id: "124",
+  //       userId: "324324324",
+  //       title: "Workspace",
+  //       address: "Gulberg",
+  //       mapTitle: "Zairone Solutions",
+  //       radius: 0,
+  //       latitude: 23423423.2,
+  //       longitude: 23423423234.2),
+  //   Location(
+  //       id: "125",
+  //       userId: "324324324",
+  //       title: "Home",
+  //       address: "Green Town",
+  //       mapTitle: "Green Town",
+  //       radius: 0,
+  //       latitude: 23423423.2,
+  //       longitude: 23423423234.2)
+  // ].obs;
 }

@@ -7,6 +7,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   final AuthController authController = AuthController.to;
 
   DashboardAppBar({super.key});
+  @override
   Size get preferredSize => const Size.fromHeight(50);
 
   @override
@@ -21,7 +22,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         ));
     return AppBar(
       title: Image.asset("assets/images/brand.png", height: 30),
-      centerTitle: true,
+      // centerTitle: true,
       actions: [
         InkWell(
           onTap: () => Get.toNamed("/settings"),

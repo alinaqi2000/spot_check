@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:localstorage/localstorage.dart';
 
 class AuthService {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final LocalStorage storage = LocalStorage("local_user");
 
   Stream<User?> onAuthChanged() {
     return firebaseAuth.authStateChanges();
@@ -27,6 +29,8 @@ class AuthService {
     );
     await firebaseAuth.signInWithCredential(credential);
     User? user = firebaseAuth.currentUser;
+    await storage.ready;
+    storage.setItem("local_storage_id", user!.uid);
     return user!.uid;
   }
 

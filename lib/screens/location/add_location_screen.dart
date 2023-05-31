@@ -59,6 +59,18 @@ class _AddLocationState extends State<AddLocation>
         target: LatLng(lC.currentLocation.value.latitude,
             lC.currentLocation.value.longitude),
         zoom: _calculateZoom(lC.radius.value))));
+    circles.clear();
+    setState(() {
+      circles = Set.from({
+        Circle(
+            circleId: const CircleId("place"),
+            center: LatLng(lC.currentLocation.value.latitude,
+                lC.currentLocation.value.longitude),
+            radius: lC.radius.value,
+            strokeColor: AppColors.primaryDim,
+            strokeWidth: 4)
+      });
+    });
     // Marker marker = const Marker(
     //   markerId: MarkerId('place_name'),
     //   position: LatLng(9.669111, 80.014007),
@@ -214,7 +226,8 @@ class _AddLocationState extends State<AddLocation>
                 zoomGesturesEnabled: true, //enable Zoom in, out on map
                 mapType: MapType.normal, //map type
                 initialCameraPosition: CameraPosition(
-                  target: _center,
+                  target: LatLng(lC.currentCordinates.value!.latitude,
+                      lC.currentCordinates.value!.longitude),
                   zoom: 11.0,
                 ),
               ),
@@ -534,12 +547,16 @@ class _SelectActionSheetState extends State<SelectActionSheet> {
                                   label: lC.currentLocation.value
                                               .actions["volume"]?['value'] !=
                                           null
-                                      ? "${lC.currentLocation.value.actions["volume"]?['value'].round().toString()}m"
+                                      ? "${lC.currentLocation.value.actions["volume"]?['value'].round().toString()}"
                                       : "0",
-                                  onChanged: (double value) {
-                                    lC.setLocationAction(
-                                        'volume', "value", value);
-                                  },
+                                  onChanged: (lC.currentLocation.value
+                                              .actions["volume"]?['mute'] ??
+                                          false)
+                                      ? null
+                                      : (double value) {
+                                          lC.setLocationAction(
+                                              'volume', "value", value);
+                                        },
                                 )),
                           ),
                         ],
