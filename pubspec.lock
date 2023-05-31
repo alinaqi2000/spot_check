@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  awesome_notifications:
+    dependency: "direct main"
+    description:
+      name: awesome_notifications
+      sha256: "86b524299d2bec2b0df66ae4d8e337a8ba29542a5e2382bc1023978bc75f41b6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.19"
   boolean_selector:
     dependency: transitive
     description:
@@ -560,6 +568,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  loading_indicator:
+    dependency: "direct main"
+    description:
+      name: loading_indicator
+      sha256: "5cb15810fc3d8872230d086b4810d9f9bbcd6e7d208a38f7cd6bc81fb2650e4b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   lottie:
     dependency: "direct main"
     description:
@@ -672,6 +688,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.6"
+  permission_handler:
+    dependency: "direct main"
+    description:
+      name: permission_handler
+      sha256: "33c6a1253d1f95fd06fa74b65b7ba907ae9811f9d5c1d3150e51417d04b8d6a8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.2.0"
+  permission_handler_android:
+    dependency: transitive
+    description:
+      name: permission_handler_android
+      sha256: d8cc6a62ded6d0f49c6eac337e080b066ee3bce4d405bd9439a61e1f1927bfe8
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.2.1"
+  permission_handler_apple:
+    dependency: transitive
+    description:
+      name: permission_handler_apple
+      sha256: ee96ac32f5a8e6f80756e25b25b9f8e535816c8e6665a96b6d70681f8c4f7e85
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.0.8"
+  permission_handler_platform_interface:
+    dependency: transitive
+    description:
+      name: permission_handler_platform_interface
+      sha256: "68abbc472002b5e6dfce47fe9898c6b7d8328d58b5d2524f75e277c07a97eb84"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.0"
+  permission_handler_windows:
+    dependency: transitive
+    description:
+      name: permission_handler_windows
+      sha256: f67cab14b4328574938ecea2db3475dad7af7ead6afab6338772c5f88963e38b
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   petitparser:
     dependency: transitive
     description:
@@ -829,6 +885,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  volume_control:
+    dependency: "direct main"
+    description:
+      name: volume_control
+      sha256: "2c370083dd3892b8e5f5650275e452fb97e90a1e1abff65b5f6a761e2bc8b754"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.5"
   win32:
     dependency: transitive
     description:
@@ -837,6 +901,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.4"
+  workmanager:
+    dependency: "direct main"
+    description:
+      name: workmanager
+      sha256: e0be7e35d644643f164ee45d2ce14414f0e0fdde19456aa66065f35a0b1d2ea1
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
   xdg_directories:
     dependency: transitive
     description:

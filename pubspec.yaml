@@ -50,6 +50,11 @@ dependencies:
   google_api_headers: ^1.6.0
   google_maps_webservice: ^0.0.20-nullsafety.5
   geocode: ^1.0.3
+  loading_indicator: ^3.1.0
+  workmanager: ^0.5.1
+  awesome_notifications: ^0.6.19
+  permission_handler: ^10.2.0
+  volume_control: ^0.1.5
 
 dev_dependencies:
   flutter_test:

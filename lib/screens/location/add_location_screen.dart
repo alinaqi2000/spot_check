@@ -14,6 +14,7 @@ import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:geocode/geocode.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 
 class AddLocation extends StatefulWidget {
   const AddLocation({super.key});
@@ -22,22 +23,42 @@ class AddLocation extends StatefulWidget {
   State<AddLocation> createState() => _AddLocationState();
 }
 
-class _AddLocationState extends State<AddLocation> {
+class _AddLocationState extends State<AddLocation>
+    with SingleTickerProviderStateMixin {
   Completer<GoogleMapController> mapController = Completer();
   late LocationController lC = Get.put(LocationController.to);
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   String googleApikey = "AIzaSyD6NZ764krClK1AQrspchl4PizSKi2seds";
 
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(seconds: 1),
+    vsync: this,
+  )..repeat(reverse: true);
+  late final Animation<Offset> _offsetAnimation = Tween<Offset>(
+    begin: Offset.zero,
+    end: const Offset(1.5, 0.0),
+  ).animate(CurvedAnimation(
+    parent: _controller,
+    curve: Curves.elasticIn,
+  ));
+  Set<Circle> circles = Set.from({});
   // LatLng _center = LatLng(9.669111, 80.014007);
 
   // double _sheetBottomPosition = 150;
 
   final LatLng _center = const LatLng(9.669111, 80.014007);
   CameraPosition? cameraPosition;
+  @override
+  void dispose() {
+    lC.gotoSelectLocation();
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController.complete(controller);
-
+    controller?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+        target: LatLng(lC.currentLocation.value.latitude,
+            lC.currentLocation.value.longitude),
+        zoom: _calculateZoom(lC.radius.value))));
     // Marker marker = const Marker(
     //   markerId: MarkerId('place_name'),
     //   position: LatLng(9.669111, 80.014007),
@@ -56,7 +77,24 @@ class _AddLocationState extends State<AddLocation> {
 
   @override
   void initState() {
+    lC.radius.listen((radiusValue) async {
+      print("change $radiusValue");
+      lC.currentLocation.value.radius = radiusValue;
+      GoogleMapController controller = await mapController.future;
+      controller?.animateCamera(
+        CameraUpdate.newCameraPosition(CameraPosition(
+            target: LatLng(lC.currentLocation.value.latitude,
+                lC.currentLocation.value.longitude),
+            zoom: _calculateZoom(radiusValue))),
+      );
+    });
+    _getCurrentLocation();
     super.initState();
+  }
+
+  double _calculateZoom(double givenRadius) {
+    double breakPoint = givenRadius / 250;
+    return 17 - breakPoint;
   }
 
   Future<Position> getUserCurrentLocation() async {
@@ -69,32 +107,35 @@ class _AddLocationState extends State<AddLocation> {
     return await Geolocator.getCurrentPosition();
   }
 
+  void _getCurrentLocation() async {
+    getUserCurrentLocation().then((value) async {
+      print("${value.latitude.toString()} ${value.longitude.toString()}");
+
+      // marker added for current users location
+
+      // specified current users location
+      CameraPosition cameraPosition = CameraPosition(
+        target: LatLng(value.latitude, value.longitude),
+        zoom: 14,
+      );
+
+      final GoogleMapController controller = await mapController.future;
+      controller.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+      setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          getUserCurrentLocation().then((value) async {
-            print("${value.latitude.toString()} ${value.longitude.toString()}");
-
-            // marker added for current users location
-
-            // specified current users location
-            CameraPosition cameraPosition = CameraPosition(
-              target: LatLng(value.latitude, value.longitude),
-              zoom: 14,
-            );
-
-            final GoogleMapController controller = await mapController.future;
-            controller
-                .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-            setState(() {});
-          });
-        },
-        child: const Icon(Icons.local_activity),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _getCurrentLocation,
+      //   child: const Icon(Icons.local_activity),
+      // ),
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           AnimatedPositioned(
@@ -106,7 +147,12 @@ class _AddLocationState extends State<AddLocation> {
             child: Stack(children: [
               GoogleMap(
                 compassEnabled: true,
-                markers: markers.values.toSet(),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                padding: const EdgeInsets.only(top: 130, bottom: 100),
+                circles: circles,
+
+                // markers: markers.values.toSet(),
                 mapToolbarEnabled: true,
                 onCameraMove: (position) => {
                   cameraPosition = position
@@ -114,8 +160,12 @@ class _AddLocationState extends State<AddLocation> {
                   //   _sheetBottomPosition = 250;
                   // })
                 },
+                onCameraMoveStarted: () {
+                  lC.performingAction.value = true;
+                },
                 onCameraIdle: () async {
                   //when map drag stops
+
                   List<Placemark> placemarks = await placemarkFromCoordinates(
                       cameraPosition!.target.latitude,
                       cameraPosition!.target.longitude);
@@ -124,27 +174,41 @@ class _AddLocationState extends State<AddLocation> {
                   lC.currentLocation.value = loc.Location(
                       id: "",
                       userId: "",
-                      title: placemarks.first.locality.toString(),
+                      title: placemarks.first.name.toString(),
+                      mapTitle: placemarks.first.name.toString(),
                       address: placemarks.first.street.toString(),
-                      mapTitle: placemarks.first.administrativeArea.toString(),
                       latitude: cameraPosition!.target.latitude,
+                      radius: lC.radius.value,
                       longitude: cameraPosition!.target.longitude);
 
-                  Marker marker = Marker(
-                    markerId: MarkerId(placemarks.first.street.toString()),
-                    position: LatLng(cameraPosition!.target.latitude,
-                        cameraPosition!.target.longitude),
-                    // icon: BitmapDescriptor.,
-                    draggable: true,
-                    infoWindow: InfoWindow(
-                      title: placemarks.first.subLocality.toString(),
-                      snippet: placemarks.first.administrativeArea.toString(),
-                    ),
-                  );
-
+                  circles.clear();
                   setState(() {
-                    markers[const MarkerId('place_name')] = marker;
+                    circles = Set.from({
+                      Circle(
+                          circleId: const CircleId("place"),
+                          center: LatLng(lC.currentLocation.value.latitude,
+                              lC.currentLocation.value.longitude),
+                          radius: lC.radius.value,
+                          strokeColor: AppColors.primaryDim,
+                          strokeWidth: 4)
+                    });
                   });
+                  lC.performingAction.value = false;
+                  // Marker marker = Marker(
+                  //   markerId: MarkerId(placemarks.first.street.toString()),
+                  //   position: LatLng(cameraPosition!.target.latitude,
+                  //       cameraPosition!.target.longitude),
+                  //   // icon: BitmapDescriptor.,
+                  //   draggable: true,
+                  //   infoWindow: InfoWindow(
+                  //     title: placemarks.first.subLocality.toString(),
+                  //     snippet: placemarks.first.administrativeArea.toString(),
+                  //   ),
+                  // );
+
+                  // setState(() {
+                  //   markers[const MarkerId('place_name')] = marker;
+                  // });
                 },
                 onMapCreated: _onMapCreated,
                 zoomGesturesEnabled: true, //enable Zoom in, out on map
@@ -174,6 +238,9 @@ class _AddLocationState extends State<AddLocation> {
                             });
 
                         if (place != null) {
+                          // lC.performingAction.value = true;
+                          lC.gotoSelectLocation();
+
                           //form google_maps_webservice package
                           final plist = GoogleMapsPlaces(
                             apiKey: googleApikey,
@@ -197,17 +264,18 @@ class _AddLocationState extends State<AddLocation> {
                               id: "",
                               userId: "",
                               title: detail.result.name.toString(),
-                              address: address.city.toString(),
                               mapTitle: detail.result.name.toString(),
+                              address: address.city.toString(),
                               latitude: lat,
+                              radius: lC.radius.value,
                               longitude: lang);
 
                           //move map camera to selected place with animation
-                          // GoogleMapController controller =
-                          //     await mapController.future;
-                          // controller?.animateCamera(
-                          //     CameraUpdate.newCameraPosition(CameraPosition(
-                          //         target: newlatlang, zoom: 17)));
+                          GoogleMapController controller =
+                              await mapController.future;
+                          controller?.animateCamera(
+                              CameraUpdate.newCameraPosition(CameraPosition(
+                                  target: newlatlang, zoom: 17)));
                         }
                       },
                       child: Padding(
@@ -240,47 +308,340 @@ class _AddLocationState extends State<AddLocation> {
           //     curve: Curves.fastOutSlowIn,
           //     duration: const Duration(milliseconds: 250),
           //     child:),
-          AnimatedPositioned(
-            curve: Curves.fastOutSlowIn,
-            duration: const Duration(milliseconds: 250),
-            bottom: 0,
-            left: 0,
-            width: width,
-            height: 275,
-            child: SizedBox(
-              child: Container(
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        colors: [AppColors.secondaryBg, AppColors.secondaryBg]),
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(AppConstraints.borderRadius),
-                      topRight: Radius.circular(AppConstraints.borderRadius),
-                    )),
-                child: const Sheet(),
-              ),
-            ),
-          )
+          Obx(() => AnimatedPositioned(
+                // curve: Curves.linear,
+                duration: const Duration(milliseconds: 250),
+                bottom: 0,
+                left: 0,
+                width: width,
+                height: lC.sheetHeight.value,
+                child: SizedBox(
+                  child: Container(
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [
+                          AppColors.secondaryBg,
+                          AppColors.secondaryBg
+                        ]),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(AppConstraints.borderRadius),
+                          topRight:
+                              Radius.circular(AppConstraints.borderRadius),
+                        )),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      transitionBuilder:
+                          (Widget child, Animation<double> animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: lC.stage.value == 'select_location'
+                          ? const SelectLocationSheet(key: ValueKey<int>(1))
+                          : const SelectActionSheet(key: ValueKey<int>(2)),
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );
   }
 }
 
-class Sheet extends StatefulWidget {
-  const Sheet({super.key});
+class SelectActionSheet extends StatefulWidget {
+  const SelectActionSheet({super.key});
 
   @override
-  State<Sheet> createState() => _SheetState();
+  State<SelectActionSheet> createState() => _SelectActionSheetState();
 }
 
-class _SheetState extends State<Sheet> {
-  late LocationController lC = Get.put(LocationController.to);
+class _SelectActionSheetState extends State<SelectActionSheet> {
+  LocationController lC = Get.put(LocationController.to);
+  final List<Color> _kDefaultRainbowColors = [
+    AppColors.primary,
+    AppColors.primary2,
+    AppColors.primaryDim
+  ];
+  final TextEditingController _locationTitleController =
+      TextEditingController();
+  @override
+  void initState() {
+    _locationTitleController.text = lC.currentLocation.value.mapTitle;
+    // lC.currentLocation.listen((p0) {
+    //   print(p0);
+    // });
+    _locationTitleController.addListener(() {
+      lC.currentLocation.value.title = _locationTitleController.value.text;
+      lC.currentLocation.refresh();
+    });
+    super.initState();
+  }
 
-  double _radius = 20;
+  @override
+  void dispose() {
+    lC.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    return Padding(
+      padding: const EdgeInsets.all(AppConstraints.hSpace),
+      child: SizedBox.expand(
+          child: Flex(
+        direction: Axis.vertical,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Wrap(
+            spacing: 20,
+            direction: Axis.vertical,
+            children: [
+              Wrap(
+                direction: Axis.horizontal,
+                spacing: 12,
+                children: [
+                  InkWell(
+                    splashColor: AppColors.dangerBg,
+                    onTap: () {
+                      lC.gotoSelectLocation();
+                    },
+                    child: const Icon(Icons.arrow_back),
+                  ),
+                  const SectionTitleText(text: "Select Action")
+                ],
+              ),
+              Wrap(
+                direction: Axis.horizontal,
+                spacing: 8,
+                children: [
+                  Obx(
+                    () => lC.performingAction.value
+                        ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: LoadingIndicator(
+                              colors: _kDefaultRainbowColors,
+                              indicatorType: Indicator.ballScaleMultiple,
+                              strokeWidth: 3,
+                              backgroundColor: Colors.transparent,
+                              pause: false,
+                              // pathBackgroundColor: Colors.black45,
+                            ),
+                          )
+                        : Icon(Icons.location_on, color: AppColors.primary),
+                  ),
+                  Obx(() => PromText(
+                      text: lC.performingAction.value
+                          ? "Loading..."
+                          : "${lC.currentLocation.value?.mapTitle} - ${lC.currentLocation.value?.address}"))
+                ],
+              ),
+              Wrap(
+                spacing: 24,
+                direction: Axis.vertical,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          backgroundColor: AppColors.primary2,
+                          value: lC.currentLocation.value.radius / 1000,
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      PromText(
+                          text:
+                              "Radius: ${lC.currentLocation.value.radius.round().toString()} meters")
+                    ],
+                  ),
+                  SizedBox(
+                    height: 50,
+                    width: width - (AppConstraints.hSpace * 2),
+                    child: TextField(
+                      controller: _locationTitleController,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Location Title',
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              const Wrap(children: [SectionTitleText(text: "Actions")]),
+              Wrap(
+                spacing: 24,
+                direction: Axis.vertical,
+                children: [
+                  SizedBox(
+                      height: 100,
+                      width: width - (AppConstraints.hSpace * 2),
+                      child: Wrap(
+                        direction: Axis.vertical,
+                        children: [
+                          SizedBox(
+                              height: 40,
+                              width: width - (AppConstraints.hSpace * 2),
+                              child: Wrap(
+                                direction: Axis.horizontal,
+                                alignment: WrapAlignment.spaceBetween,
+                                children: [
+                                  const PromText(text: "Volume"),
+                                  Wrap(
+                                    spacing: 8,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      const ParaText(text: "Mute"),
+                                      SizedBox(
+                                        // width: 60,
+                                        height: 30,
+                                        child: FittedBox(
+                                            fit: BoxFit.fill,
+                                            child: Obx(
+                                              () => Switch(
+                                                value: lC.currentLocation.value
+                                                            .actions["volume"]
+                                                        ?['mute'] ??
+                                                    false,
+                                                activeColor: AppColors.primary,
+                                                onChanged: (bool value) =>
+                                                    lC.setLocationAction(
+                                                        'volume',
+                                                        "mute",
+                                                        value),
+                                              ),
+                                            )),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              )),
+                          SizedBox(
+                            height: 40,
+                            width: width - (AppConstraints.hSpace * 2),
+                            child: Obx(() => Slider(
+                                  value: lC.currentLocation.value
+                                          .actions["volume"]?['value'] ??
+                                      0.0,
+                                  thumbColor: AppColors.primary,
+                                  activeColor: AppColors.primaryDim,
+                                  max: 100,
+                                  min: 0,
+                                  divisions: 25,
+                                  label: lC.currentLocation.value
+                                              .actions["volume"]?['value'] !=
+                                          null
+                                      ? "${lC.currentLocation.value.actions["volume"]?['value'].round().toString()}m"
+                                      : "0",
+                                  onChanged: (double value) {
+                                    lC.setLocationAction(
+                                        'volume', "value", value);
+                                  },
+                                )),
+                          ),
+                        ],
+                      ))
+                ],
+              ),
+              SizedBox(
+                height: 30,
+                width: width - (AppConstraints.hSpace * 2),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    const PromText(text: "Airplane Mode"),
+                    SizedBox(
+                      // width: 60,
+                      height: 30,
+                      child: FittedBox(
+                          fit: BoxFit.fill,
+                          child: Obx(
+                            () => Switch(
+                              value: lC.currentLocation.value
+                                      .actions["airplane_mode"]?['value'] ??
+                                  false,
+                              activeColor: AppColors.primary,
+                              onChanged: (bool value) => lC.setLocationAction(
+                                  'airplane_mode', "value", value),
+                            ),
+                          )),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 30,
+                width: width - (AppConstraints.hSpace * 2),
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    const PromText(text: "Wifi"),
+                    SizedBox(
+                      // width: 60,
+                      height: 30,
+                      child: FittedBox(
+                          fit: BoxFit.fill,
+                          child: Obx(
+                            () => Switch(
+                              value: lC.currentLocation.value.actions["wifi"]
+                                      ?['value'] ??
+                                  false,
+                              activeColor: AppColors.primary,
+                              onChanged: (bool value) =>
+                                  lC.setLocationAction('wifi', "value", value),
+                            ),
+                          )),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+          const Spacer(),
+          FilledButton.icon(
+            style: ButtonStyle(
+                backgroundColor: MaterialStateColor.resolveWith(
+                    (states) => AppColors.primary),
+                foregroundColor: MaterialStateColor.resolveWith(
+                    (states) => AppColors.secondaryText)),
+            label: const Text("Apply Actions"),
+            icon: const Icon(Icons.check),
+            onPressed: lC.performingAction.value
+                ? null
+                : () {
+                    lC.addLocation();
+                  },
+          )
+        ],
+      )),
+    );
+  }
+}
 
+class SelectLocationSheet extends StatefulWidget {
+  const SelectLocationSheet({super.key});
+
+  @override
+  State<SelectLocationSheet> createState() => _SelectLocationSheetState();
+}
+
+class _SelectLocationSheetState extends State<SelectLocationSheet> {
+  late LocationController lC = Get.put(LocationController.to);
+  final List<Color> _kDefaultRainbowColors = [
+    AppColors.primary,
+    AppColors.primary2,
+    AppColors.primaryDim
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
     return Padding(
       padding: const EdgeInsets.all(AppConstraints.hSpace),
       child: SizedBox.expand(
@@ -311,33 +672,48 @@ class _SheetState extends State<Sheet> {
                 direction: Axis.horizontal,
                 spacing: 8,
                 children: [
-                  Icon(Icons.location_on, color: AppColors.primary),
+                  Obx(() => lC.performingAction.value
+                      ? SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: LoadingIndicator(
+                            colors: _kDefaultRainbowColors,
+                            indicatorType: Indicator.ballScaleMultiple,
+                            strokeWidth: 3,
+                            backgroundColor: Colors.transparent,
+                            pause: false,
+                            // pathBackgroundColor: Colors.black45,
+                          ),
+                        )
+                      : Icon(Icons.location_on, color: AppColors.primary)),
                   Obx(() => PromText(
-                      text:
-                          "${lC.currentLocation.value?.title} - ${lC.currentLocation.value?.address}"))
+                      text: lC.performingAction.value
+                          ? "Loading..."
+                          : "${lC.currentLocation.value?.title} - ${lC.currentLocation.value?.address}"))
                 ],
               ),
               Wrap(
                 spacing: 8,
                 direction: Axis.vertical,
                 children: [
-                  const PromText(text: "Radius (meters)"),
+                  Obx(() => PromText(
+                      text:
+                          "Radius (${lC.radius.value.round().toString()} meters)")),
                   SizedBox(
                     height: 50,
                     width: width - (AppConstraints.hSpace * 2),
-                    child: Slider(
-                      value: _radius,
-                      thumbColor: AppColors.primary,
-                      activeColor: AppColors.primaryDim,
-                      max: 1000,
-                      divisions: 10,
-                      label: "${_radius.round().toString()}m",
-                      onChanged: (double value) {
-                        setState(() {
-                          _radius = value;
-                        });
-                      },
-                    ),
+                    child: Obx(() => Slider(
+                          value: lC.radius.value,
+                          thumbColor: AppColors.primary,
+                          activeColor: AppColors.primaryDim,
+                          max: 1000,
+                          min: 50,
+                          divisions: 15,
+                          label: "${lC.radius.value.round().toString()}m",
+                          onChanged: (double value) {
+                            lC.radius.value = value;
+                          },
+                        )),
                   ),
                 ],
               ),
@@ -350,9 +726,13 @@ class _SheetState extends State<Sheet> {
                     (states) => AppColors.primary),
                 foregroundColor: MaterialStateColor.resolveWith(
                     (states) => AppColors.secondaryText)),
-            label: const Text("Add Location"),
-            icon: const Icon(Icons.add),
-            onPressed: () {},
+            label: const Text("Select Action"),
+            icon: const Icon(Icons.check),
+            onPressed: lC.performingAction.value
+                ? null
+                : () {
+                    lC.gotoSelectAction(height);
+                  },
           )
         ],
       )),

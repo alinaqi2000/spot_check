@@ -1,3 +1,4 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:spot_check/constants/colors.dart';
@@ -8,6 +9,7 @@ import 'package:spot_check/store/controllers/activity.controller.dart';
 import 'package:spot_check/store/controllers/location.controller.dart';
 import 'package:spot_check/widgets/components.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,6 +19,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  Position? position;
+
+  void _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    permission = await Geolocator.checkPermission();
+    if (permission != LocationPermission.denied) {
+      Position userLocation = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+
+      setState(() {
+        position = userLocation;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: 123,
+            channelKey: "test_channel",
+            title: "This is test",
+            body: "this is test message body"));
+    _determinePosition();
+
+  
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,6 +78,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Padding(
                   padding: EdgeInsets.only(top: 24),
                   child: SectionTitleText(text: "My Locations"),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: SectionTitleText(text: position.toString()),
                 ),
                 SizedBox(
                   height: 174,
@@ -139,51 +177,57 @@ class LocationsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: tC.locations.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 20, bottom: 20, right: 8),
-            child: SizedBox(
-              width: 146,
-              child: Container(
-                decoration: const BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        offset: Offset(2, 2),
-                        blurRadius: 14,
-                        color: Color.fromRGBO(33, 10, 15, 0.75),
-                      )
-                    ],
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(AppConstraints.borderRadius),
-                        topRight: Radius.circular(6),
-                        bottomLeft:
-                            Radius.circular(AppConstraints.borderRadius),
-                        bottomRight:
-                            Radius.circular(AppConstraints.borderRadius)),
-                    gradient: LinearGradient(
-                      colors: [Color(0xff781b2e), Color(0x82201a1a)],
-                      stops: [0, 0.4],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    )),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Flex(
-                      direction: Axis.vertical,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Heading2Text(
-                          text: tC.locations[index].title,
-                        )
-                      ]),
+    return StreamBuilder(
+      stream: LocationController.to.loadLocations(),
+      builder: (context, snapshot) {
+        return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: snapshot.data?.length ?? 0,
+            itemBuilder: (BuildContext context, int index) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 20, bottom: 20, right: 8),
+                child: SizedBox(
+                  width: 146,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            offset: Offset(2, 2),
+                            blurRadius: 14,
+                            color: Color.fromRGBO(33, 10, 15, 0.75),
+                          )
+                        ],
+                        borderRadius: BorderRadius.only(
+                            topLeft:
+                                Radius.circular(AppConstraints.borderRadius),
+                            topRight: Radius.circular(6),
+                            bottomLeft:
+                                Radius.circular(AppConstraints.borderRadius),
+                            bottomRight:
+                                Radius.circular(AppConstraints.borderRadius)),
+                        gradient: LinearGradient(
+                          colors: [Color(0xff781b2e), Color(0x82201a1a)],
+                          stops: [0, 0.4],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Flex(
+                          direction: Axis.vertical,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Heading2Text(
+                              text: snapshot.data![index].title ?? "",
+                            )
+                          ]),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        });
+              );
+            });
+      },
+    );
   }
 }
