@@ -47,7 +47,7 @@ void callbackDispatcher() async {
                             locationId: "loc1",
                             title: "Volume muted",
                             description:
-                                "You reached inside the ${AppGeolocator.kmtoMString(location['radius'])} of ${location['title']}",
+                                "You reached inside the ${AppGeolocator.kmtoMString(distance)} of ${location['title']}",
                             dateTime: DateTime.now(),
                             latitude: userLocation.latitude,
                             longitude: userLocation.longitude,
@@ -61,7 +61,7 @@ void callbackDispatcher() async {
                                 title:
                                     "Volume reduced to ${action['value'].round()}",
                                 description:
-                                    "You were ${AppGeolocator.kmtoMString(location['radius'])} away from ${location['title']}",
+                                    "You were ${AppGeolocator.kmtoMString(distance)} away from ${location['title']}",
                                 dateTime: DateTime.now(),
                                 latitude: userLocation.latitude,
                                 longitude: userLocation.longitude,
