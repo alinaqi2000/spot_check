@@ -40,12 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: 123,
-            channelKey: "test_channel",
-            title: "This is test",
-            body: "this is test message body"));
+
     _determinePosition();
 
   

@@ -2,13 +2,22 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:spot_check/store/models/location.model.dart';
+import 'package:localstorage/localstorage.dart';
 
 class LocationService {
   CollectionReference locationsRef =
       FirebaseFirestore.instance.collection("locations");
   Stream<List<Location>> findAll(userId) {
-    return locationsRef.where("userId", isEqualTo: userId).get().then((value) {
-      return value.docs.map((e) => Location.fromSnapshot(e)).toList();
+    final LocalStorage storage = LocalStorage('local_locs');
+
+    return locationsRef
+        .where("userId", isEqualTo: userId)
+        .get()
+        .then((value) async {
+      var items = value.docs.map((e) => Location.fromSnapshot(e)).toList();
+      await storage.ready;
+      await storage.setItem('local_locations', items);
+      return items;
     }).asStream();
     //Here we are converting the firebase snapshot to a stream of user todo list.
   }

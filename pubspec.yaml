@@ -55,6 +55,8 @@ dependencies:
   awesome_notifications: ^0.6.19
   permission_handler: ^10.2.0
   volume_control: ^0.1.5
+  flutter_local_notifications: ^14.1.0
+  localstorage: ^4.0.1+2
 
 dev_dependencies:
   flutter_test:
