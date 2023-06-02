@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:spot_check/constants/assets.dart';
 import 'package:spot_check/constants/constraints.dart';
 import 'package:spot_check/constants/colors.dart';
+import 'package:spot_check/constants/sizes.dart';
 import 'package:spot_check/constants/strings.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,12 +43,16 @@ class _LoginScreenState extends State<LoginScreen> {
               direction: Axis.vertical,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const SizedBox(height: 30),
                 const HeadingText(
                   text: "Welcome to ${AppStrings.appName} 👋",
                 ),
                 const SizedBox(height: 20),
-                const PromText(
-                    text: "Manage your mobile feature based on on location."),
+                const Text(
+                  "Manage your mobile features based on your location.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: AppSizes.prominentSize),
+                ),
                 const Spacer(flex: 1),
                 SizedBox(
                   width: 300,
@@ -55,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const Spacer(flex: 1),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 60),
+                  padding: const EdgeInsets.only(bottom: 50),
                   child: ElevatedButton(
                       onPressed: _googleSignIn,
                       child: Padding(

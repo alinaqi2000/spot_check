@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:localstorage/localstorage.dart';
-import 'package:spot_check/store/models/notification.dart';
 
 class NotificationController extends GetxController {
   static NotificationController get to => Get.find();
@@ -20,6 +19,7 @@ class NotificationController extends GetxController {
     await storage.ready;
 
     notifications.value = await storage.getItem('local_notifications');
+    notifications.value = notifications.reversed.toList();
     notifications.refresh();
   }
 }

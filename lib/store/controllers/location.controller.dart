@@ -1,6 +1,7 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:spot_check/constants/colors.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
 import 'package:spot_check/store/models/location.model.dart';
 import 'package:spot_check/store/services/location.service.dart';
@@ -63,13 +64,30 @@ class LocationController extends GetxController {
       AuthController authController = AuthController.to;
       currentLocation.value.userId = authController.user.value!.uid;
       var location = await _locationService!.addOne(currentLocation.value);
-      Get.snackbar("Success", location.title,
+      Get.snackbar("Success!", "${location.title} has been added to loctions.",
+          backgroundColor: AppColors.successBg,
           snackPosition: SnackPosition.BOTTOM);
       performingAction.value = false;
       Get.offAllNamed("/");
     } catch (e) {
       performingAction.value = false;
       Get.snackbar("Error!", "Something went wrong, please try later.",
+          backgroundColor: AppColors.dangerBg,
+          snackPosition: SnackPosition.BOTTOM);
+      print(e.toString());
+    }
+  }
+
+  void deleteLocation(String id) async {
+    try {
+      var location = await _locationService!.deleteOne(id);
+      Get.snackbar("Success!", "Location has been deleted to loctions.",
+          backgroundColor: AppColors.successBg,
+          snackPosition: SnackPosition.BOTTOM);
+      loadLocations();
+    } catch (e) {
+      Get.snackbar("Error!", "a ${e.toString()}",
+          backgroundColor: AppColors.dangerBg,
           snackPosition: SnackPosition.BOTTOM);
       print(e.toString());
     }

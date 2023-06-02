@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:localstorage/localstorage.dart';
 import 'package:lottie/lottie.dart';
 import 'package:spot_check/constants/colors.dart';
 import 'package:spot_check/constants/constraints.dart';
@@ -31,6 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (permission != LocationPermission.denied) {
         lC.currentCordinates.value = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.high);
+        final LocalStorage locStorage = LocalStorage('local_locs');
+        Future.delayed(const Duration(seconds: 10)).then((value) async {
+          await locStorage.ready;
+          await locStorage.setItem(
+              "previousLocation", lC.currentCordinates.value);
+        });
       }
     }
   }
@@ -47,11 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
         appBar: DashboardAppBar(),
         floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: AppColors.primary,
           onPressed: () {
             Get.toNamed("/add_location");
           },
           label: const PromText(text: "Location"),
-          icon: const Icon(Icons.add),
+          icon: const Icon(Icons.add_location_alt),
         ),
         body: SingleChildScrollView(
             child: ConstrainedBox(
@@ -73,20 +82,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   height: locationBoxHeight,
                   width: MediaQuery.of(context).size.width,
-                  child: Padding(
-                      padding: const EdgeInsets.only(top: 10),
+                  child: const Padding(
+                      padding: EdgeInsets.only(top: 10),
                       child: LocationsList()),
                 ),
                 const Padding(
                   padding: EdgeInsets.only(top: 24),
                   child: SectionTitleText(text: "Recent Activity"),
                 ),
-                SizedBox(
-                  height: 400,
-                  child: Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 33),
-                      child: ActivityList()),
-                )
+                ActivityList()
               ],
             ),
           ),
@@ -97,214 +101,283 @@ class _HomeScreenState extends State<HomeScreen> {
 class ActivityList extends StatelessWidget {
   final ActivityController aC = Get.put(ActivityController());
   ActivityList({super.key});
-
+  final ScrollController controller = ScrollController();
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-        separatorBuilder: (context, index) => const SizedBox(height: 8),
-        itemCount: aC.activities.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Padding(
-            padding: const EdgeInsets.only(),
-            child: Container(
-                decoration: BoxDecoration(
-                    boxShadow: const [
-                      BoxShadow(
-                        offset: Offset(2, 2),
-                        blurRadius: 14,
-                        color: Color.fromRGBO(33, 10, 15, 0.75),
-                      )
-                    ],
-                    borderRadius:
-                        BorderRadius.circular(AppConstraints.borderRadius),
-                    gradient: LinearGradient(
-                      colors: [AppColors.secondaryBg, AppColors.secondaryBg],
-                      stops: const [0, 0.4],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    )),
-                child: ListTile(
-                  dense: true,
-                  horizontalTitleGap: 10,
-                  isThreeLine: true,
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.primary2,
-                    radius: 20,
-                    child: const Icon(
-                        size: AppSizes.heading2Size, Icons.location_on),
-                  ),
-                  title: Flex(
-                      direction: Axis.horizontal,
-                      clipBehavior: Clip.hardEdge,
-                      children: [
-                        SizedBox(
-                          width: 175,
-                          child: PromText(text: aC.activities[index].title),
-                        ),
-                        const Spacer(),
-                        SizedBox(
-                            width: 25,
-                            child: Text(
-                                style: TextStyle(
-                                    fontSize: AppSizes.paraSize,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.primary),
-                                timeago.format(aC.activities[index].dateTime,
-                                    locale: "en_short")))
-                      ]),
-                  subtitle: ParaText(text: aC.activities[index].description),
-                )),
-          );
-        });
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 60),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 800, minHeight: 200.0),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          controller: controller,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemCount: aC.activities.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Padding(
+              padding: const EdgeInsets.only(),
+              child: Container(
+                  decoration: BoxDecoration(
+                      boxShadow: const [
+                        BoxShadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 14,
+                          color: Color.fromRGBO(33, 10, 15, 0.75),
+                        )
+                      ],
+                      borderRadius:
+                          BorderRadius.circular(AppConstraints.borderRadius),
+                      gradient: LinearGradient(
+                        colors: [AppColors.secondaryBg, AppColors.secondaryBg],
+                        stops: const [0, 0.4],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      )),
+                  child: ListTile(
+                    dense: true,
+                    horizontalTitleGap: 10,
+                    isThreeLine: true,
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primary2,
+                      radius: 20,
+                      child: const Icon(
+                          size: AppSizes.heading2Size, Icons.location_on),
+                    ),
+                    title: Flex(
+                        direction: Axis.horizontal,
+                        clipBehavior: Clip.hardEdge,
+                        children: [
+                          SizedBox(
+                            width: 175,
+                            child: PromText(text: aC.activities[index].title),
+                          ),
+                          const Spacer(),
+                          SizedBox(
+                              width: 25,
+                              child: Text(
+                                  style: TextStyle(
+                                      fontSize: AppSizes.paraSize,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: AppColors.primary),
+                                  timeago.format(aC.activities[index].dateTime,
+                                      locale: "en_short")))
+                        ]),
+                    subtitle: ParaText(text: aC.activities[index].description),
+                  )),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 
-class LocationsList extends StatelessWidget {
-  final LocationController lC = Get.put(LocationController());
-  LocationsList({super.key});
+class LocationsList extends StatefulWidget {
+  const LocationsList({super.key});
 
+  @override
+  State<LocationsList> createState() => _LocationsListState();
+}
+
+class _LocationsListState extends State<LocationsList> {
+  final LocationController lC = Get.put(LocationController());
+  bool reload = false;
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
       stream: LocationController.to.loadLocations(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return SizedBox(
-            child: Center(
-              child: Wrap(
-                direction: Axis.vertical,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Lottie.asset("assets/lottie/location_empty.json",
-                      height: 100),
-                  const PromText(text: "No locations found")
-                ],
+        if (snapshot.hasData) {
+          if (snapshot.data!.isEmpty) {
+            return SizedBox(
+              child: Center(
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Lottie.asset("assets/lottie/location_empty.json",
+                        height: 100),
+                    const PromText(text: "Locations list is empty")
+                  ],
+                ),
               ),
-            ),
-          );
-        }
-        if (snapshot.data!.isEmpty) {
-          return SizedBox(
-            child: Center(
-              child: Wrap(
-                direction: Axis.vertical,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Lottie.asset("assets/lottie/location_empty.json",
-                      height: 100),
-                  const PromText(text: "No locations found")
-                ],
-              ),
-            ),
-          );
-        }
-
-        return ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: snapshot.data?.length ?? 0,
-            itemBuilder: (BuildContext context, int index) {
-              final Location location = snapshot.data![index];
-              final distance = lC.distanceBetweenLocation(location);
-              final distanceText = AppGeolocator.kmtoMString(distance);
-
-              return Padding(
-                key: UniqueKey(),
-                padding: const EdgeInsets.only(top: 20, bottom: 20, right: 8),
-                child: SizedBox(
-                  width: 146,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            offset: Offset(2, 2),
-                            blurRadius: 14,
-                            color: Color.fromRGBO(33, 10, 15, 0.75),
-                          )
-                        ],
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(12),
-                            topRight: Radius.circular(64),
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12)),
-                        gradient: LinearGradient(
-                          colors: [Color(0xff781b2e), Color(0xffe91e63)],
-                          stops: [0.33, 1],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        )),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Stack(clipBehavior: Clip.none, children: [
-                        Positioned(
-                            left: -25,
-                            top: -30,
-                            child: SizedBox(
-                              height: 60,
-                              width: 60,
-                              child: Lottie.asset(
-                                  'assets/lottie/map_marker_animation.json'),
+            );
+          }
+          return ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: snapshot.data?.length ?? 0,
+              itemBuilder: (BuildContext context, int index) {
+                final Location location = snapshot.data![index];
+                return Padding(
+                  key: ValueKey(location.id),
+                  padding: const EdgeInsets.only(top: 20, bottom: 20, right: 8),
+                  child: SizedBox(
+                    width: 146,
+                    child: InkWell(
+                      onTap: () {
+                        lC.currentLocation.value = location;
+                        Get.toNamed("/add_location",
+                            arguments: {"fromLocation": true});
+                      },
+                      onLongPress: () {
+                        Get.defaultDialog(
+                            contentPadding:
+                                const EdgeInsets.all(AppConstraints.hSpace),
+                            title: "Delete location",
+                            content: const ParaText(
+                                text:
+                                    "Are you sure, you want to delete this location?"),
+                            cancel: ElevatedButton(
+                                onPressed: () {
+                                  Get.back();
+                                },
+                                child: const Text("Cancel")),
+                            actions: [
+                              FilledButton(
+                                  onPressed: () {
+                                    lC.deleteLocation(location.id);
+                                    // setState(() {
+                                    //   reload = !reload;
+                                    // });
+                                    Get.back();
+                                  },
+                                  child: const Text("Delete"))
+                            ]);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            boxShadow: const [
+                              BoxShadow(
+                                offset: Offset(2, 2),
+                                blurRadius: 14,
+                                color: Color.fromRGBO(33, 10, 15, 0.75),
+                              )
+                            ],
+                            borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                topRight: Radius.circular(64),
+                                bottomLeft: Radius.circular(12),
+                                bottomRight: Radius.circular(12)),
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xff781b2e),
+                                AppColors.primary
+                              ],
+                              stops: const [0.2, 1],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             )),
-                        Positioned(
-                            top: 28,
-                            height: locationBoxHeight - 105,
-                            child: Wrap(
-                              direction: Axis.vertical,
-                              alignment: WrapAlignment.spaceBetween,
-                              crossAxisAlignment: WrapCrossAlignment.start,
-                              clipBehavior: Clip.antiAlias,
-                              spacing: 8,
-                              children: [
-                                Wrap(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Stack(clipBehavior: Clip.none, children: [
+                            Positioned(
+                                left: -20,
+                                top: -30,
+                                child: SizedBox(
+                                  height: 60,
+                                  width: 60,
+                                  child: Lottie.asset(
+                                      'assets/lottie/map_marker_animation.json'),
+                                )),
+                            Positioned(
+                                top: 28,
+                                height: locationBoxHeight - 105,
+                                child: Wrap(
                                   direction: Axis.vertical,
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                  clipBehavior: Clip.antiAlias,
+                                  spacing: 8,
                                   children: [
-                                    SizedBox(
-                                      width: 125,
-                                      child: Text(
-                                        location.title ?? "",
-                                        softWrap: true,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontSize: AppSizes.prominentSize),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 125,
-                                      child: Text(
-                                        location.address ?? "",
-                                        softWrap: true,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                            fontSize: AppSizes.paraSize),
-                                      ),
+                                    Wrap(
+                                      direction: Axis.vertical,
+                                      children: [
+                                        SizedBox(
+                                          width: 125,
+                                          child: Text(
+                                            location.title ?? "",
+                                            softWrap: true,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                fontSize:
+                                                    AppSizes.prominentSize),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 125,
+                                          child: Text(
+                                            location.address ?? "",
+                                            softWrap: true,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                fontSize: AppSizes.paraSize),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
-                                ),
-                                const Spacer(),
-                                SizedBox(
-                                  width: 110,
-                                  child: RichText(
-                                      text: TextSpan(children: [
-                                    TextSpan(
-                                        text: distanceText,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: AppSizes.headingSize)),
-                                    const TextSpan(
-                                        text: " away",
-                                        style: TextStyle(
-                                            fontSize: AppSizes.paraSize)),
-                                  ])),
-                                ),
-                              ],
-                            ))
-                      ]),
+                                )),
+                            Positioned(
+                              bottom: 0,
+                              child: SizedBox(
+                                width: 110,
+                                child: Obx(() => lC.currentCordinates.value !=
+                                        null
+                                    ? RichText(
+                                        text: TextSpan(children: [
+                                        TextSpan(
+                                            text: AppGeolocator.kmtoMString(
+                                                lC.distanceBetweenLocation(
+                                                    snapshot.data![index])),
+                                            style: TextStyle(
+                                                fontFamily:
+                                                    GoogleFonts.palanquinDark()
+                                                        .fontFamily,
+                                                fontSize:
+                                                    AppSizes.headingSize)),
+                                        TextSpan(
+                                            text: " away",
+                                            style: TextStyle(
+                                                fontFamily:
+                                                    GoogleFonts.palanquinDark()
+                                                        .fontFamily,
+                                                fontSize: AppSizes.paraSize)),
+                                      ]))
+                                    : const Wrap(
+                                        spacing: 4,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Icon(Icons.location_off, size: 16),
+                                          ParaText(text: "Off")
+                                        ],
+                                      )),
+                              ),
+                            )
+                          ]),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              );
-            });
+                );
+              });
+        }
+
+        return SizedBox(
+          child: Center(
+            child: Wrap(
+              direction: Axis.vertical,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Lottie.asset("assets/lottie/location_empty.json", height: 100),
+                const PromText(text: "Loading locations...")
+              ],
+            ),
+          ),
+        );
       },
     );
   }

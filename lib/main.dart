@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:localstorage/localstorage.dart';
 import 'package:spot_check/constants/colors.dart';
 import 'package:spot_check/noti.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
@@ -14,6 +13,9 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:spot_check/worker.plugin.dart';
+import 'package:sound_mode/sound_mode.dart';
+import 'package:sound_mode/utils/ringer_mode_statuses.dart';
+import 'package:sound_mode/permission_handler.dart';
 
 final flNotiPlugin = FlutterLocalNotificationsPlugin();
 
@@ -33,7 +35,7 @@ void main() async {
 
   await Workmanager().initialize(
     callbackDispatcher,
-    isInDebugMode: true,
+    isInDebugMode: false,
   );
 
   runApp(const MyApp());
@@ -57,9 +59,14 @@ class _MyAppState extends State<MyApp> {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.location,
       Permission.storage,
+      Permission.accessNotificationPolicy,
       Permission.notification
     ].request();
-
+    // bool? permissionStatus = false;
+    // permissionStatus = await PermissionHandler.permissionsGranted;
+    // print(permissionStatus);
+    // final ringerStatus = await SoundMode.setSoundMode(RingerModeStatus.normal);
+    // print(ringerStatus);
     Workmanager().registerOneOffTask(
         DateTime.now().toString(), locationBasedAction,
         initialDelay: const Duration(seconds: 5)
@@ -82,9 +89,9 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.native,
       theme: ThemeData(
-          brightness: Brightness.dark,
+          brightness: Brightness.dark, 
           useMaterial3: true,
-          colorSchemeSeed: AppColors.primary,
+          colorSchemeSeed: AppColors.themeColor,
           textTheme: GoogleFonts.palanquinDarkTextTheme(const TextTheme(
             displayLarge: TextStyle(
               fontSize: 36,

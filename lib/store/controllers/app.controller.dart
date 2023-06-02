@@ -12,7 +12,7 @@ class AppController extends GetxController {
 
   void changePage(int index) {
     currentIndex.value = index;
-    Get.offNamed(pages[index], id: 1);
+    Get.offAllNamed(pages[index], id: 1);
   }
 
   Route? onGenerateRoute(RouteSettings settings) {

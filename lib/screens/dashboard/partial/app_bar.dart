@@ -4,7 +4,7 @@ import 'package:spot_check/constants/constraints.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final AuthController authController = AuthController.to;
+  final AuthController aC = AuthController.to;
 
   DashboardAppBar({super.key});
   @override
@@ -17,7 +17,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: CircleAvatar(
             radius: 16,
             backgroundImage:
-                NetworkImage(authController?.user?.value?.photoURL ?? ""),
+                NetworkImage(aC?.user?.value?.photoURL ?? ""),
           ),
         ));
     return AppBar(

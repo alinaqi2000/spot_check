@@ -19,12 +19,12 @@ class AppGeolocator {
     return "${distance.round()}m";
   }
 
-  static double getLocationDistance(dynamic location, Position userLocation) {
+  static double getLocationDistance(dynamic location, dynamic userLocation) {
     return distanceBetween(
       location is Location ? location.latitude : location['latitude'],
       location is Location ? location.longitude : location['longitude'],
-      userLocation.latitude,
-      userLocation.longitude,
+      userLocation is Map ? userLocation['latitude'] : userLocation.latitude,
+      userLocation is Map ? userLocation['longitude'] : userLocation.longitude,
     );
   }
 }

@@ -1,6 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum NotificationType { wifi, volume, airplaneMode }
+enum NotificationType {
+  volume,
+  volumeMute,
+  silentMode,
+  vibrationMode,
+  airplaneModeOn,
+  airplaneModeOff,
+  wifiOn,
+  wifiOff,
+}
 
 class Notification {
   String id;
@@ -12,6 +21,7 @@ class Notification {
   String userId;
   String locationId;
   NotificationType type;
+  bool read = false;
 
   Notification({
     required this.id,
@@ -23,19 +33,20 @@ class Notification {
     required this.latitude,
     required this.longitude,
     required this.type,
+    this.read = false,
   });
-  copyWith({title, description, address, dateTime, type, latitude, longitude}) {
+  copyWith({title, description, dateTime, type, latitude, longitude}) {
     return Notification(
-      id: id,
-      userId: userId,
-      locationId: locationId,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      dateTime: dateTime ?? this.dateTime,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      type: type ?? this.type,
-    );
+        id: id,
+        userId: userId,
+        locationId: locationId,
+        title: title ?? this.title,
+        description: description ?? this.description,
+        dateTime: dateTime ?? this.dateTime,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
+        type: type ?? this.type,
+        read: false);
   }
 
   factory Notification.fromSnapshot(DocumentSnapshot snap) {
@@ -47,6 +58,7 @@ class Notification {
       dateTime: snap.get("dateTime"),
       longitude: snap.get("longitude"),
       type: snap.get("type"),
+      read: snap.get("read"),
       userId: "",
       locationId: "",
     );
@@ -60,6 +72,7 @@ class Notification {
       "latitude": latitude,
       "longitude": longitude,
       "type": type.toString(),
+      "read": read,
     };
   }
 }
