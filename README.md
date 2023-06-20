@@ -68,3 +68,6 @@ The following GIFs showcase the functionality and user experience of SpotCheck:
 
 ![Real-Time Notifications](https://i.postimg.cc/N08nDJhQ/sc-notifications.gif)
 
+## License
+SpotCheck is released under the MIT License.
+
