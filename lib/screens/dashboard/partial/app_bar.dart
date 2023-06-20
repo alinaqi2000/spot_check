@@ -5,8 +5,8 @@ import 'package:spot_check/store/controllers/auth.controller.dart';
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   final AuthController aC = AuthController.to;
-
-  DashboardAppBar({super.key});
+  Widget? title;
+  DashboardAppBar({super.key, this.title});
   @override
   Size get preferredSize => const Size.fromHeight(50);
 
@@ -16,12 +16,11 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: AppConstraints.hSpace),
           child: CircleAvatar(
             radius: 16,
-            backgroundImage:
-                NetworkImage(aC?.user?.value?.photoURL ?? ""),
+            backgroundImage: NetworkImage(aC?.user?.value?.photoURL ?? ""),
           ),
         ));
     return AppBar(
-      title: Image.asset("assets/images/brand.png", height: 30),
+      title: title ?? Image.asset("assets/images/brand.png", height: 30),
       // centerTitle: true,
       actions: [
         InkWell(

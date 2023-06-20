@@ -1,11 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:spot_check/constants/colors.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
 import 'package:spot_check/store/models/location.model.dart';
 import 'package:spot_check/store/services/location.service.dart';
 import 'package:spot_check/utils/geolocation.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LocationController extends GetxController {
   static LocationController get to => Get.find();
@@ -64,9 +65,15 @@ class LocationController extends GetxController {
       AuthController authController = AuthController.to;
       currentLocation.value.userId = authController.user.value!.uid;
       var location = await _locationService!.addOne(currentLocation.value);
-      Get.snackbar("Success!", "${location.title} has been added to loctions.",
-          backgroundColor: AppColors.successBg,
-          snackPosition: SnackPosition.BOTTOM);
+      Fluttertoast.showToast(
+        msg: "${location.title} has been added to loctions.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: AppColors.successBg,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
       performingAction.value = false;
       Get.offAllNamed("/");
     } catch (e) {
@@ -81,9 +88,16 @@ class LocationController extends GetxController {
   void deleteLocation(String id) async {
     try {
       var location = await _locationService!.deleteOne(id);
-      Get.snackbar("Success!", "Location has been deleted to loctions.",
-          backgroundColor: AppColors.successBg,
-          snackPosition: SnackPosition.BOTTOM);
+      Fluttertoast.showToast(
+        msg: "Location has been deleted to loctions",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: AppColors.successBg,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+
       loadLocations();
     } catch (e) {
       Get.snackbar("Error!", "a ${e.toString()}",

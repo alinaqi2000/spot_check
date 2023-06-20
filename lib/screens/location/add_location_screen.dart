@@ -637,93 +637,93 @@ class _SelectActionSheetState extends State<SelectActionSheet> {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 30,
-                      width: width - (AppConstraints.hSpace * 2),
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        alignment: WrapAlignment.spaceBetween,
-                        children: [
-                          RichText(
-                              text: TextSpan(children: [
-                            TextSpan(
-                                text: "Airplane Mode",
-                                style: TextStyle(
-                                    fontFamily:
-                                        GoogleFonts.palanquinDark().fontFamily,
-                                    fontSize: AppSizes.prominentSize)),
-                            TextSpan(
-                                text: " (Under Development)",
-                                style: TextStyle(
-                                    fontFamily:
-                                        GoogleFonts.palanquinDark().fontFamily,
-                                    fontSize: AppSizes.paraSize))
-                          ])),
-                          SizedBox(
-                            // width: 60,
-                            height: 30,
-                            child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Obx(
-                                  () => Switch(
-                                    value: lC.currentLocation.value
-                                                .actions["airplane_mode"]
-                                            ?['value'] ??
-                                        false,
-                                    activeColor: AppColors.primary,
-                                    onChanged: null,
-                                    // onChanged: (bool value) =>
-                                    //     lC.setLocationAction(
-                                    //         'airplane_mode', "value", value),
-                                  ),
-                                )),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: 30,
-                      width: width - (AppConstraints.hSpace * 2),
-                      child: Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        alignment: WrapAlignment.spaceBetween,
-                        children: [
-                          RichText(
-                              text: TextSpan(children: [
-                            TextSpan(
-                                text: "Wifi",
-                                style: TextStyle(
-                                    fontFamily:
-                                        GoogleFonts.palanquinDark().fontFamily,
-                                    fontSize: AppSizes.prominentSize)),
-                            TextSpan(
-                                text: " (Under Development)",
-                                style: TextStyle(
-                                    fontFamily:
-                                        GoogleFonts.palanquinDark().fontFamily,
-                                    fontSize: AppSizes.paraSize))
-                          ])),
-                          SizedBox(
-                            // width: 60,
-                            height: 30,
-                            child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Obx(
-                                  () => Switch(
-                                    value: lC.currentLocation.value
-                                            .actions["wifi"]?['value'] ??
-                                        false,
-                                    activeColor: AppColors.primary,
-                                    onChanged: null,
-                                    // onChanged: (bool value) =>
-                                    //     lC.setLocationAction(
-                                    //         'wifi', "value", value),
-                                  ),
-                                )),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // SizedBox(
+                    //   height: 30,
+                    //   width: width - (AppConstraints.hSpace * 2),
+                    //   child: Wrap(
+                    //     crossAxisAlignment: WrapCrossAlignment.center,
+                    //     alignment: WrapAlignment.spaceBetween,
+                    //     children: [
+                    //       RichText(
+                    //           text: TextSpan(children: [
+                    //         TextSpan(
+                    //             text: "Airplane Mode",
+                    //             style: TextStyle(
+                    //                 fontFamily:
+                    //                     GoogleFonts.palanquinDark().fontFamily,
+                    //                 fontSize: AppSizes.prominentSize)),
+                    //         TextSpan(
+                    //             text: " (Under Development)",
+                    //             style: TextStyle(
+                    //                 fontFamily:
+                    //                     GoogleFonts.palanquinDark().fontFamily,
+                    //                 fontSize: AppSizes.paraSize))
+                    //       ])),
+                    //       SizedBox(
+                    //         // width: 60,
+                    //         height: 30,
+                    //         child: FittedBox(
+                    //             fit: BoxFit.fill,
+                    //             child: Obx(
+                    //               () => Switch(
+                    //                 value: lC.currentLocation.value
+                    //                             .actions["airplane_mode"]
+                    //                         ?['value'] ??
+                    //                     false,
+                    //                 activeColor: AppColors.primary,
+                    //                 onChanged: null,
+                    //                 // onChanged: (bool value) =>
+                    //                 //     lC.setLocationAction(
+                    //                 //         'airplane_mode', "value", value),
+                    //               ),
+                    //             )),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(
+                    //   height: 30,
+                    //   width: width - (AppConstraints.hSpace * 2),
+                    //   child: Wrap(
+                    //     crossAxisAlignment: WrapCrossAlignment.center,
+                    //     alignment: WrapAlignment.spaceBetween,
+                    //     children: [
+                    //       RichText(
+                    //           text: TextSpan(children: [
+                    //         TextSpan(
+                    //             text: "Wifi",
+                    //             style: TextStyle(
+                    //                 fontFamily:
+                    //                     GoogleFonts.palanquinDark().fontFamily,
+                    //                 fontSize: AppSizes.prominentSize)),
+                    //         TextSpan(
+                    //             text: " (Under Development)",
+                    //             style: TextStyle(
+                    //                 fontFamily:
+                    //                     GoogleFonts.palanquinDark().fontFamily,
+                    //                 fontSize: AppSizes.paraSize))
+                    //       ])),
+                    //       SizedBox(
+                    //         // width: 60,
+                    //         height: 30,
+                    //         child: FittedBox(
+                    //             fit: BoxFit.fill,
+                    //             child: Obx(
+                    //               () => Switch(
+                    //                 value: lC.currentLocation.value
+                    //                         .actions["wifi"]?['value'] ??
+                    //                     false,
+                    //                 activeColor: AppColors.primary,
+                    //                 onChanged: null,
+                    //                 // onChanged: (bool value) =>
+                    //                 //     lC.setLocationAction(
+                    //                 //         'wifi', "value", value),
+                    //               ),
+                    //             )),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

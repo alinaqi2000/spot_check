@@ -59,6 +59,7 @@ dependencies:
   localstorage: ^4.0.1+2
   volume_controller: ^2.0.7
   sound_mode: ^2.0.2
+  fluttertoast: ^8.2.2
 
 dev_dependencies:
   flutter_test:

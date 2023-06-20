@@ -13,9 +13,6 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:spot_check/worker.plugin.dart';
-import 'package:sound_mode/sound_mode.dart';
-import 'package:sound_mode/utils/ringer_mode_statuses.dart';
-import 'package:sound_mode/permission_handler.dart';
 
 final flNotiPlugin = FlutterLocalNotificationsPlugin();
 
@@ -89,7 +86,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.native,
       theme: ThemeData(
-          brightness: Brightness.dark, 
+          brightness: Brightness.dark,
           useMaterial3: true,
           colorSchemeSeed: AppColors.themeColor,
           textTheme: GoogleFonts.palanquinDarkTextTheme(const TextTheme(

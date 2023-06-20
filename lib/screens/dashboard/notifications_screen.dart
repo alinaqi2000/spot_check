@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
@@ -7,7 +8,6 @@ import 'package:spot_check/screens/dashboard/partial/app_bar.dart';
 import 'package:spot_check/store/controllers/auth.controller.dart';
 import 'package:spot_check/store/controllers/notification.controller.dart';
 import 'package:spot_check/widgets/components.dart';
-import 'package:spot_check/worker.plugin.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class NotidicationScreen extends StatefulWidget {
@@ -20,9 +20,24 @@ class NotidicationScreen extends StatefulWidget {
 class _NotidicationScreenState extends State<NotidicationScreen> {
   AuthController authController = AuthController.to;
   NotificationController nC = Get.put(NotificationController());
+  int _counter = 0;
+  static const platform = MethodChannel('example.com/channel');
+
   @override
   void initState() {
     super.initState();
+  }
+
+  void invokeNative() async {
+    int random;
+    try {
+      random = await platform.invokeMethod('getRandomNumber');
+    } on PlatformException catch (e) {
+      random = 0;
+    }
+    setState(() {
+      _counter = random;
+    });
   }
 
   Widget notificationIcon(String type) {
@@ -51,12 +66,10 @@ class _NotidicationScreenState extends State<NotidicationScreen> {
     double width =
         MediaQuery.of(context).size.width - (AppConstraints.hSpace * 2);
     return Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: DashboardAppBar(),
-        
+        appBar: DashboardAppBar(title: const Text("Notifications")),
         // floatingActionButton: FloatingActionButton.extended(
-        //   onPressed: () => callbackDispatcher(),
-        //   label: const PromText(text: "Send Notis"),
+        //   onPressed: () => invokeNative(),
+        //   label: const PromText(text: "InVoke Native"),
         //   icon: const Icon(Icons.notification_add),
         // ),
         body: Obx(() => nC.notifications.isEmpty
@@ -80,8 +93,10 @@ class _NotidicationScreenState extends State<NotidicationScreen> {
                           DateTime.now().toString());
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppConstraints.hSpace),
+                    padding: EdgeInsets.only(
+                        left: AppConstraints.hSpace,
+                        right: AppConstraints.hSpace,
+                        top: (index == 0) ? 20.0 : 0.0),
                     child: Container(
                       decoration: BoxDecoration(
                           boxShadow: const [
@@ -116,8 +131,8 @@ class _NotidicationScreenState extends State<NotidicationScreen> {
                             text: nC.notifications[index]['description']),
                         dense: true,
                         trailing: ParaText(
-                            text:
-                                "${timeago.format(dateTime, locale: "en_short")} ago"),
+                            text: timeago.format(dateTime,
+                                locale: "en_short", allowFromNow: true)),
                       ),
                     ),
                   );
